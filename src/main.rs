@@ -5,6 +5,7 @@ use std::env;
 use std::fs::File;
 use std::io::{Read, Seek, SeekFrom};
 
+use ffmpeg::format::context::Input;
 use hex_slice::AsHex;
 
 // Beginning of AAX file checksum
@@ -22,13 +23,13 @@ fn main() {
     println!("checksum: {}", extract_checksum(&mut file));
 }
 
-fn print_metadata(input: &ffmpeg::format::context::Input) {
+fn print_metadata(input: &Input) {
     for meta in input.metadata().iter() {
         println!("{}: {}", meta.0, meta.1);
     }
 }
 
-fn print_chapters(input: &ffmpeg::format::context::Input) {
+fn print_chapters(input: &Input) {
     for chapter in input.chapters() {
         let denominator = chapter.time_base().denominator() as f64;
         let start = (chapter.start() as f64) / denominator;
