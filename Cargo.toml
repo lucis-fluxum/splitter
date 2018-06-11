@@ -6,3 +6,4 @@ authors = ["Luc Street <lucis-fluxum@users.noreply.github.com>"]
 [dependencies]
 # TODO: Use this fork until https://github.com/meh/rust-ffmpeg/pull/97 is resolved
 ffmpeg = { git = "https://github.com/kornelski/rust-ffmpeg" }
+hex-slice = "0.1.4"
