@@ -1,0 +1,3 @@
+[submodule "rcrack"]
+	path = rcrack
+	url = https://github.com/inAudible-NG/tables
