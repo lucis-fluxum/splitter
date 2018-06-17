@@ -1,6 +1,8 @@
 extern crate ffmpeg;
 extern crate hex_slice;
 
+mod chapter_info;
+
 use std::env;
 use std::fs::File;
 use std::io::{Read, Seek, SeekFrom};
@@ -9,18 +11,20 @@ use std::process::Command;
 use ffmpeg::format::context::Input;
 use hex_slice::AsHex;
 
+use chapter_info::ChapterInfo;
+
 // Beginning of AAX file checksum
 const FILE_CHECKSUM_START: u64 = 653;
 const CHECKSUM_BUFFER_SIZE: usize = 20;
 
 // TODO: Use clap and add extra configuration like output file pattern, bitrate, etc.
+// TODO: Fill those ID3 headers with metadata
 fn main() {
     ffmpeg::init().unwrap();
     let path = env::args().nth(1).expect("missing input file name");
     let input = ffmpeg::format::input(&path).expect("unable to create input context");
     let mut file = File::open(path).unwrap();
     // print_metadata(&input);
-    // print_chapters(&input);
     let checksum = extract_checksum(&mut file);
     println!("\nRunning rcrack for {}...", checksum);
     println!("activation_bytes: {}", extract_activation_bytes(&checksum));
@@ -32,21 +36,11 @@ fn print_metadata(input: &Input) {
     }
 }
 
-fn print_chapters(input: &Input) {
-    for chapter in input.chapters() {
-        let denominator = chapter.time_base().denominator() as f64;
-        let start = (chapter.start() as f64) / denominator;
-        let end = (chapter.end() as f64) / denominator;
-        println!(
-            "{}: {} - {}",
-            chapter
-                .metadata()
-                .get("title")
-                .unwrap_or(&chapter.id().to_string()),
-            start,
-            end
-        );
-    }
+fn get_chapter_infos(input: &Input) -> Vec<ChapterInfo> {
+    input
+        .chapters()
+        .map(|chapter| ChapterInfo::new(&chapter))
+        .collect()
 }
 
 fn extract_checksum(file: &mut File) -> String {
