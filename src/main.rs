@@ -5,8 +5,8 @@ mod chapter_info;
 
 use std::env;
 use std::fs::File;
-use std::path::PathBuf;
 use std::io::{Read, Seek, SeekFrom};
+use std::path::PathBuf;
 use std::process::Command;
 
 use ffmpeg::format::context::Input;
@@ -23,28 +23,27 @@ const CHECKSUM_BUFFER_SIZE: usize = 20;
 // TODO: Save activation_bytes for use in subsequent runs
 fn main() {
     ffmpeg::init().unwrap();
+
     let path = PathBuf::from(env::args().nth(1).expect("missing input file name"));
-    let file_stem = path.file_stem().unwrap().to_str().unwrap();
     let input = ffmpeg::format::input(&path).expect("unable to create input context");
+    // TODO: Use input metadata to grab title
+    let book_title = path.file_stem().unwrap().to_str().unwrap();
+
     let mut file = File::open(&path).unwrap();
-    print_metadata(&input);
     let checksum = extract_checksum(&mut file);
+
+    print_metadata(&input);
+
     println!("\nRunning rcrack for {}...", checksum);
     let activation_bytes = extract_activation_bytes(&checksum);
     println!("activation_bytes: {}", activation_bytes);
 
-    // TODO: Parallellize
-    for ch_info in get_chapter_infos(&input) {
-        let ffmpeg_output = Command::new("ffmpeg")
-            .args(&["-activation_bytes", &activation_bytes])
-            .args(&["-i", path.to_str().unwrap()])
-            .args(&["-vn", "-b:a", "320k"])
-            .args(&["-ss", &ch_info.start.to_string(), "-to", &ch_info.end.to_string()])
-            .arg(&format!("{} - {}.mp3", file_stem, ch_info.title))
-            .output()
-            .expect(&format!("couldn't create {}", ch_info.title));
-        println!("{:?}", ffmpeg_output);
-    }
+    write_chapters(
+        &input,
+        path.to_str().unwrap(),
+        &activation_bytes,
+        &book_title,
+    );
 }
 
 fn print_metadata(input: &Input) {
@@ -78,4 +77,24 @@ fn extract_activation_bytes(hash: &str) -> String {
         .expect("couldn't extract activation bytes from hash")
         .trim_right()
         .to_string()
+}
+
+fn write_chapters(input: &Input, filename: &str, activation_bytes: &str, book_title: &str) {
+    // TODO: Parallellize
+    for ch_info in get_chapter_infos(&input) {
+        let ffmpeg_output = Command::new("ffmpeg")
+            .args(&["-activation_bytes", &activation_bytes])
+            .args(&["-i", filename])
+            .args(&["-vn", "-b:a", "320k"])
+            .args(&[
+                "-ss",
+                &ch_info.start.to_string(),
+                "-to",
+                &ch_info.end.to_string(),
+            ])
+            .arg(&format!("{} - {}.mp3", book_title, ch_info.title))
+            .output()
+            .expect(&format!("couldn't create {}", ch_info.title));
+        println!("{:?}", ffmpeg_output);
+    }
 }
