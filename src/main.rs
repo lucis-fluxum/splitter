@@ -5,6 +5,7 @@ mod chapter_info;
 
 use std::env;
 use std::fs::File;
+use std::path::PathBuf;
 use std::io::{Read, Seek, SeekFrom};
 use std::process::Command;
 
@@ -19,15 +20,31 @@ const CHECKSUM_BUFFER_SIZE: usize = 20;
 
 // TODO: Use clap and add extra configuration like output file pattern, bitrate, etc.
 // TODO: Fill those ID3 headers with metadata
+// TODO: Save activation_bytes for use in subsequent runs
 fn main() {
     ffmpeg::init().unwrap();
-    let path = env::args().nth(1).expect("missing input file name");
+    let path = PathBuf::from(env::args().nth(1).expect("missing input file name"));
+    let file_stem = path.file_stem().unwrap().to_str().unwrap();
     let input = ffmpeg::format::input(&path).expect("unable to create input context");
-    let mut file = File::open(path).unwrap();
-    // print_metadata(&input);
+    let mut file = File::open(&path).unwrap();
+    print_metadata(&input);
     let checksum = extract_checksum(&mut file);
     println!("\nRunning rcrack for {}...", checksum);
-    println!("activation_bytes: {}", extract_activation_bytes(&checksum));
+    let activation_bytes = extract_activation_bytes(&checksum);
+    println!("activation_bytes: {}", activation_bytes);
+
+    // TODO: Parallellize
+    for ch_info in get_chapter_infos(&input) {
+        let ffmpeg_output = Command::new("ffmpeg")
+            .args(&["-activation_bytes", &activation_bytes])
+            .args(&["-i", path.to_str().unwrap()])
+            .args(&["-vn", "-b:a", "320k"])
+            .args(&["-ss", &ch_info.start.to_string(), "-to", &ch_info.end.to_string()])
+            .arg(&format!("{} - {}.mp3", file_stem, ch_info.title))
+            .output()
+            .expect(&format!("couldn't create {}", ch_info.title));
+        println!("{:?}", ffmpeg_output);
+    }
 }
 
 fn print_metadata(input: &Input) {
@@ -59,5 +76,6 @@ fn extract_activation_bytes(hash: &str) -> String {
         .split(':')
         .next_back()
         .expect("couldn't extract activation bytes from hash")
+        .trim_right()
         .to_string()
 }

@@ -2,9 +2,9 @@ use ffmpeg::format::chapter::Chapter;
 use std::fmt;
 
 pub struct ChapterInfo {
-    title: String,
-    start: f64,
-    end: f64,
+    pub title: String,
+    pub start: f64,
+    pub end: f64,
 }
 
 impl ChapterInfo {
