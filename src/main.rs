@@ -5,7 +5,7 @@ mod chapter_info;
 
 use std::env;
 use std::fs::File;
-use std::io::{Read, Seek, SeekFrom};
+use std::io::{self, Read, Seek, SeekFrom, Write};
 use std::path::PathBuf;
 use std::process::Command;
 
@@ -82,7 +82,12 @@ fn extract_activation_bytes(hash: &str) -> String {
 fn write_chapters(input: &Input, filename: &str, activation_bytes: &str, book_title: &str) {
     // TODO: Parallellize
     for ch_info in get_chapter_infos(&input) {
-        let ffmpeg_output = Command::new("ffmpeg")
+        let output_name = format!("{} - {}.mp3", book_title, ch_info.title);
+
+        print!("Writing {}... ", output_name);
+        io::stdout().flush().unwrap();
+
+        let output = Command::new("ffmpeg")
             .args(&["-activation_bytes", &activation_bytes])
             .args(&["-i", filename])
             .args(&["-vn", "-b:a", "320k"])
@@ -92,9 +97,11 @@ fn write_chapters(input: &Input, filename: &str, activation_bytes: &str, book_ti
                 "-to",
                 &ch_info.end.to_string(),
             ])
-            .arg(&format!("{} - {}.mp3", book_title, ch_info.title))
+            .arg(&output_name)
             .output()
-            .expect(&format!("couldn't create {}", ch_info.title));
-        println!("{:?}", ffmpeg_output);
+            .expect(&format!("couldn't create {}", output_name));
+        if output.status.success() {
+            println!("Done.");
+        }
     }
 }
