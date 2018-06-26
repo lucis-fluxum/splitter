@@ -1,14 +1,16 @@
+#[macro_use]
+extern crate clap;
 extern crate ffmpeg;
 extern crate hex_slice;
 
 mod chapter_info;
 
-use std::env;
 use std::fs::File;
 use std::io::{self, Read, Seek, SeekFrom, Write};
 use std::path::PathBuf;
 use std::process::Command;
 
+use clap::{App, Arg};
 use ffmpeg::format::context::Input;
 use hex_slice::AsHex;
 
@@ -18,13 +20,24 @@ use chapter_info::ChapterInfo;
 const FILE_CHECKSUM_START: u64 = 653;
 const CHECKSUM_BUFFER_SIZE: usize = 20;
 
-// TODO: Use clap and add extra configuration like output file pattern, bitrate, etc.
+// TODO: Add extra configuration like output file pattern, bitrate, etc.
 // TODO: Fill those ID3 headers with metadata
 // TODO: Save activation_bytes for use in subsequent runs
 fn main() {
-    ffmpeg::init().unwrap();
+    let args = App::new(crate_name!())
+        .version(crate_version!())
+        .author(crate_authors!())
+        .about("Split AAX files from Audible into multiple MP3 files by chapter using ffmpeg.")
+        .arg(
+            Arg::with_name("FILE")
+                .help("AAX file to split")
+                .required(true),
+        )
+        .get_matches();
 
-    let path = PathBuf::from(env::args().nth(1).expect("missing input file name"));
+    let path = PathBuf::from(args.value_of("FILE").unwrap());
+
+    ffmpeg::init().unwrap();
     let input = ffmpeg::format::input(&path).expect("unable to create input context");
     // TODO: Use input metadata to grab title
     let book_title = path.file_stem().unwrap().to_str().unwrap();
