@@ -20,7 +20,7 @@ use chapter_info::ChapterInfo;
 const FILE_CHECKSUM_START: u64 = 653;
 const CHECKSUM_BUFFER_SIZE: usize = 20;
 
-// TODO: Add extra configuration like output file pattern, bitrate, etc.
+// TODO: Add extra configuration like output file pattern
 // TODO: Fill those ID3 headers with metadata
 // TODO: Save activation_bytes for use in subsequent runs
 fn main() {
@@ -31,11 +31,20 @@ fn main() {
         .arg(
             Arg::with_name("FILE")
                 .help("AAX file to split")
-                .required(true),
+                .required(true)
+                .empty_values(false),
+        )
+        .arg(
+            Arg::with_name("bitrate")
+                .short("b")
+                .long("bitrate")
+                .help("Set the desired bitrate of outputted MP3 files")
+                .default_value("256k"),
         )
         .get_matches();
 
     let path = PathBuf::from(args.value_of("FILE").unwrap());
+    let desired_bitrate = args.value_of("bitrate").unwrap();
 
     ffmpeg::init().unwrap();
     let input = ffmpeg::format::input(&path).expect("unable to create input context");
@@ -56,6 +65,7 @@ fn main() {
         path.to_str().unwrap(),
         &activation_bytes,
         &book_title,
+        &desired_bitrate,
     );
 }
 
@@ -92,7 +102,13 @@ fn extract_activation_bytes(hash: &str) -> String {
         .to_string()
 }
 
-fn write_chapters(input: &Input, filename: &str, activation_bytes: &str, book_title: &str) {
+fn write_chapters(
+    input: &Input,
+    filename: &str,
+    activation_bytes: &str,
+    book_title: &str,
+    desired_bitrate: &str,
+) {
     // TODO: Parallellize
     for ch_info in get_chapter_infos(&input) {
         let output_name = format!("{} - {}.mp3", book_title, ch_info.title);
@@ -103,7 +119,7 @@ fn write_chapters(input: &Input, filename: &str, activation_bytes: &str, book_ti
         let output = Command::new("ffmpeg")
             .args(&["-activation_bytes", &activation_bytes])
             .args(&["-i", filename])
-            .args(&["-vn", "-b:a", "320k"])
+            .args(&["-vn", "-b:a", desired_bitrate])
             .args(&[
                 "-ss",
                 &ch_info.start.to_string(),
