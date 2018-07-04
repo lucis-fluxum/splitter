@@ -2,17 +2,19 @@
 extern crate clap;
 extern crate ffmpeg;
 extern crate hex_slice;
+extern crate rayon;
 
 mod chapter_info;
 
 use std::fs::File;
-use std::io::{self, Read, Seek, SeekFrom, Write};
+use std::io::{Read, Seek, SeekFrom};
 use std::path::PathBuf;
 use std::process::Command;
 
 use clap::{App, Arg};
 use ffmpeg::format::context::Input;
 use hex_slice::AsHex;
+use rayon::prelude::*;
 
 use chapter_info::ChapterInfo;
 
@@ -109,14 +111,11 @@ fn write_chapters(
     book_title: &str,
     desired_bitrate: &str,
 ) {
-    // TODO: Parallellize
-    for ch_info in get_chapter_infos(&input) {
+    get_chapter_infos(&input).par_iter().for_each(|ch_info| {
         let output_name = format!("{} - {}.mp3", book_title, ch_info.title);
+        println!("Writing {}... ", output_name);
 
-        print!("Writing {}... ", output_name);
-        io::stdout().flush().unwrap();
-
-        let output = Command::new("ffmpeg")
+        Command::new("ffmpeg")
             .args(&["-activation_bytes", &activation_bytes])
             .args(&["-i", filename])
             .args(&["-vn", "-b:a", desired_bitrate])
@@ -129,8 +128,5 @@ fn write_chapters(
             .arg(&output_name)
             .output()
             .expect(&format!("couldn't create {}", output_name));
-        if output.status.success() {
-            println!("Done.");
-        }
-    }
+    });
 }

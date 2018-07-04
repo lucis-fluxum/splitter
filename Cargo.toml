@@ -9,3 +9,4 @@ authors = ["Luc Street <lucis-fluxum@users.noreply.github.com>"]
 ffmpeg = { git = "https://github.com/hecke-rs/rust-ffmpeg" }
 hex-slice = "0.1"
 clap = "2.32"
+rayon = "1.0"
