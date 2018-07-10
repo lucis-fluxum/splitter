@@ -5,6 +5,7 @@ extern crate hex_slice;
 extern crate rayon;
 
 mod chapter_info;
+mod validators;
 
 use std::fs::File;
 use std::io::{Read, Seek, SeekFrom};
@@ -34,14 +35,16 @@ fn main() {
             Arg::with_name("FILE")
                 .help("AAX file to split")
                 .required(true)
-                .empty_values(false),
+                .empty_values(false)
+                .validator(validators::file_name),
         )
         .arg(
             Arg::with_name("bitrate")
                 .short("b")
                 .long("bitrate")
                 .help("Set the desired bitrate of outputted MP3 files")
-                .default_value("256k"),
+                .default_value("256k")
+                .validator(validators::bitrate),
         )
         .get_matches();
 
