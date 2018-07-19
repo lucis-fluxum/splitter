@@ -13,15 +13,11 @@ impl ChapterInfo {
             Some(title) => title.to_string(),
             None => chapter.id().to_string(),
         };
-        let denominator = chapter.time_base().denominator() as f64;
+        let denominator = f64::from(chapter.time_base().denominator());
         let start = (chapter.start() as f64) / denominator;
         let end = (chapter.end() as f64) / denominator;
 
-        ChapterInfo {
-            title: title,
-            start: start,
-            end: end,
-        }
+        ChapterInfo { title, start, end }
     }
 }
 

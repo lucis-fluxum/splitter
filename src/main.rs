@@ -130,6 +130,6 @@ fn write_chapters(
             ])
             .arg(&output_name)
             .output()
-            .expect(&format!("couldn't create {}", output_name));
+            .unwrap_or_else(|_| panic!("couldn't create {}", output_name));
     });
 }
