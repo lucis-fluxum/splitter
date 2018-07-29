@@ -1,6 +1,9 @@
+cargo-features = ["edition"]
+
 [package]
 name = "splitter"
 version = "0.1.0"
+edition = "2018"
 authors = ["Luc Street <lucis-fluxum@users.noreply.github.com>"]
 
 [dependencies]

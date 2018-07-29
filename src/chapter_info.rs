@@ -1,14 +1,14 @@
 use ffmpeg::format::chapter::Chapter;
 use std::fmt;
 
-pub struct ChapterInfo {
-    pub title: String,
-    pub start: f64,
-    pub end: f64,
+crate struct ChapterInfo {
+    crate title: String,
+    crate start: f64,
+    crate end: f64,
 }
 
 impl ChapterInfo {
-    pub fn new(chapter: &Chapter) -> Self {
+    crate fn new(chapter: &Chapter<'_>) -> Self {
         let title = match chapter.metadata().get("title") {
             Some(title) => title.to_string(),
             None => chapter.id().to_string(),
@@ -22,7 +22,7 @@ impl ChapterInfo {
 }
 
 impl fmt::Display for ChapterInfo {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}: {} - {}", self.title, self.start, self.end)
     }
 }

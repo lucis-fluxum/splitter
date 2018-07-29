@@ -1,8 +1,4 @@
-#[macro_use]
-extern crate clap;
-extern crate ffmpeg;
-extern crate hex_slice;
-extern crate rayon;
+#![warn(rust_2018_idioms)]
 
 mod chapter_info;
 mod validators;
@@ -12,12 +8,12 @@ use std::io::{Read, Seek, SeekFrom};
 use std::path::PathBuf;
 use std::process::Command;
 
-use clap::{App, Arg};
+use clap::{crate_authors, crate_name, crate_version, App, Arg};
 use ffmpeg::format::context::Input;
 use hex_slice::AsHex;
 use rayon::prelude::*;
 
-use chapter_info::ChapterInfo;
+use crate::chapter_info::ChapterInfo;
 
 // Beginning of AAX file checksum
 const FILE_CHECKSUM_START: u64 = 653;

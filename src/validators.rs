@@ -3,7 +3,7 @@ const VALID_BITRATE_VALUES: [&str; 16] = [
     "224k", "256k", "320k",
 ];
 
-pub fn file_name(value: String) -> Result<(), String> {
+crate fn file_name(value: String) -> Result<(), String> {
     if value.to_lowercase().ends_with(".aax") {
         Ok(())
     } else {
@@ -11,7 +11,7 @@ pub fn file_name(value: String) -> Result<(), String> {
     }
 }
 
-pub fn bitrate(value: String) -> Result<(), String> {
+crate fn bitrate(value: String) -> Result<(), String> {
     if VALID_BITRATE_VALUES.contains(&value.as_str()) {
         Ok(())
     } else {
