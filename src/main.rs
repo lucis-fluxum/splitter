@@ -9,7 +9,7 @@ use std::path::PathBuf;
 use std::process::Command;
 
 use clap::{crate_authors, crate_name, crate_version, App, Arg};
-use ffmpeg::format::context::Input;
+use ffmpeg4::format::context::Input;
 use hex_slice::AsHex;
 use rayon::prelude::*;
 
@@ -47,8 +47,8 @@ fn main() {
     let path = PathBuf::from(args.value_of("FILE").unwrap());
     let desired_bitrate = args.value_of("bitrate").unwrap();
 
-    ffmpeg::init().unwrap();
-    let input = ffmpeg::format::input(&path).expect("unable to create input context");
+    ffmpeg4::init().unwrap();
+    let input = ffmpeg4::format::input(&path).expect("unable to create input context");
     // TODO: Use input metadata to grab title
     let book_title = path.file_stem().unwrap().to_str().unwrap();
 
@@ -99,7 +99,7 @@ fn extract_activation_bytes(hash: &str) -> String {
         .split(':')
         .next_back()
         .expect("couldn't extract activation bytes from hash")
-        .trim_right()
+        .trim_end()
         .to_string()
 }
 

@@ -1,14 +1,14 @@
-use ffmpeg::format::chapter::Chapter;
+use ffmpeg4::format::chapter::Chapter;
 use std::fmt;
 
-crate struct ChapterInfo {
-    crate title: String,
-    crate start: f64,
-    crate end: f64,
+pub struct ChapterInfo {
+    pub title: String,
+    pub start: f64,
+    pub end: f64,
 }
 
 impl ChapterInfo {
-    crate fn new(chapter: &Chapter<'_>) -> Self {
+    pub fn new(chapter: &Chapter<'_>) -> Self {
         let title = match chapter.metadata().get("title") {
             Some(title) => title.to_string(),
             None => chapter.id().to_string(),

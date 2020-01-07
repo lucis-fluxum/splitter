@@ -1,5 +1,3 @@
-cargo-features = ["edition"]
-
 [package]
 name = "splitter"
 version = "0.1.0"
@@ -7,9 +5,7 @@ edition = "2018"
 authors = ["Luc Street <lucis-fluxum@users.noreply.github.com>"]
 
 [dependencies]
-# TODO: Use this fork until https://github.com/meh/rust-ffmpeg/pull/97 is resolved
-# Or, alternatively, when all the changes from hecke-rs are merged
-ffmpeg = { git = "https://github.com/hecke-rs/rust-ffmpeg" }
+ffmpeg4 = { git = "https://github.com/bacek/rust-ffmpeg" }
 hex-slice = "0.1"
 clap = "2.32"
 rayon = "1.0"
